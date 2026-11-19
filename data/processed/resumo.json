@@ -1,0 +1,52 @@
+{
+  "geral": {
+    "demandas": 433077,
+    "elegiveis": 397759,
+    "taxa_janela": 0.7488529486447824,
+    "p50_dias": 4.0,
+    "p80_dias": 54.0,
+    "pct_aberta": 0.1677576966682599
+  },
+  "distritos": 96,
+  "servicos": 64,
+  "estabilidade_spearman": {
+    "t1_t2": 0.6258681497558329,
+    "t2_t3": 0.7807786218122627,
+    "t1_t3": 0.6188686923494303
+  },
+  "centralidade": {
+    "spearman_indice_x_distancia": 0.22600456458541712,
+    "p_valor": 0.02682138519531783
+  },
+  "indice": {
+    "min": 0.851592205657089,
+    "max": 1.2014205418372383,
+    "p10": 0.9343145693729653,
+    "p90": 1.0844633156497476
+  },
+  "taxa_bruta": {
+    "min": 0.5763473053892215,
+    "max": 0.8817704723239925
+  },
+  "sensibilidade_repetidos_spearman": 0.9920374389582203,
+  "sensibilidade_janela60_spearman": 0.8923223005968528,
+  "prioridade": {
+    "pares_avaliados": 1543,
+    "pares_abaixo": 702,
+    "ganho_total": 14096.867598352106,
+    "nao_resolvidas_janela": 99896,
+    "acum_20": 0.24249268892816722,
+    "acum_50": 0.45449212397327904,
+    "acum_100": 0.6582563479896288,
+    "data_retrato": "2026-10-08",
+    "abertas_retrato": 27552,
+    "atrasadas": 3673,
+    "pontos_3": 1145,
+    "pontos_5": 292
+  },
+  "recomendador": {
+    "consultas": 40,
+    "top1": 0.75,
+    "top3": 0.925
+  }
+}

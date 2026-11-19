@@ -1,0 +1,25 @@
+{
+  "titulo": "ZelaSP",
+  "subtitulo": "Inteligência urbana para serviços públicos mais justos e eficientes.",
+  "grupo": "Grupo 67",
+  "turma": "PREENCHER",
+  "integrantes": [
+    {
+      "nome": "Jocasta de Kacia Bortolacci",
+      "rm": "RM564730"
+    }
+  ],
+  "link_video": "PREENCHER",
+  "link_repositorio": "https://github.com/jojocamdb/gs2fiap",
+  "quero_concorrer": false,
+  "categoria": "Plataforma de inteligência urbana",
+  "chamada": "Uma cidade melhor começa com uma gestão mais inteligente.",
+  "assinatura": "Transparência para quem vive. Inteligência para quem cuida.",
+  "pilares": [
+    "Cidadania",
+    "Dados",
+    "Equidade",
+    "Cidade"
+  ],
+  "descricao": "Plataforma que transforma dados públicos em informação acessível para cidadãos e inteligência estratégica para gestores, identificando desigualdades no atendimento e indicando onde a cidade precisa de mais atenção."
+}

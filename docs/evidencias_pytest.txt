@@ -1,0 +1,52 @@
+============================= test session starts ==============================
+collecting ... collected 47 items
+
+tests/test_assistente_recomendador.py::test_recomendador_vocabulario_popular[tem uma cratera na rua-1] PASSED 
+tests/test_assistente_recomendador.py::test_recomendador_vocabulario_popular[precisa podar o galho-2] PASSED 
+tests/test_assistente_recomendador.py::test_recomendador_vocabulario_popular[bueiro entupido-3] PASSED 
+tests/test_assistente_recomendador.py::test_recomendador_vocabulario_popular[largaram um sof\xe1 na cal\xe7ada-4] PASSED 
+tests/test_assistente_recomendador.py::test_recomendador_entrada_vazia_ou_sem_relacao PASSED 
+tests/test_assistente_recomendador.py::test_recomendador_trunca_entrada_longa PASSED 
+tests/test_assistente_recomendador.py::test_higienizar_mascara_dados_pessoais_e_controle PASSED 
+tests/test_assistente_recomendador.py::test_ficha_e_redacao_padrao_so_usam_numeros_calculados PASSED 
+tests/test_assistente_recomendador.py::test_ficha_sem_mediana_atingida PASSED 
+tests/test_assistente_recomendador.py::test_ia_que_inventa_numero_e_descartada PASSED 
+tests/test_assistente_recomendador.py::test_ia_fiel_a_ficha_e_aceita PASSED 
+tests/test_assistente_recomendador.py::test_falha_da_api_nao_deixa_o_cidadao_sem_resposta PASSED 
+tests/test_assistente_recomendador.py::test_injecao_no_relato_nao_altera_fatos_nem_instrucao PASSED 
+tests/test_assistente_recomendador.py::test_sem_chave_usa_redacao_padrao PASSED 
+tests/test_assistente_recomendador.py::test_normalizar_usado_no_recomendador PASSED 
+tests/test_etl.py::test_detecta_formato_brasileiro_cp1252 PASSED         
+tests/test_etl.py::test_detecta_formato_americano_utf8 PASSED            
+tests/test_etl.py::test_formato_ambiguo_interrompe_a_carga PASSED        
+tests/test_etl.py::test_numero_errado_de_colunas PASSED                  
+tests/test_etl.py::test_diretorio_vazio PASSED                           
+tests/test_etl.py::test_normalizar_unifica_travessao_acento_e_espacos PASSED 
+tests/test_etl.py::test_limpar_aplica_recorte_e_regras PASSED            
+tests/test_etl.py::test_censura_e_janela PASSED                          
+tests/test_indicadores.py::test_kaplan_meier_confere_com_calculo_manual PASSED 
+tests/test_indicadores.py::test_sem_censura_km_igual_a_mediana_empirica PASSED 
+tests/test_indicadores.py::test_percentil_nao_atingido_devolve_none PASSED 
+tests/test_indicadores.py::test_media_das_finalizadas_subestima_com_censura PASSED 
+tests/test_indicadores.py::test_indice_vale_um_quando_distrito_igual_a_cidade PASSED 
+tests/test_indicadores.py::test_indice_neutraliza_o_mix_de_servicos PASSED 
+tests/test_indicadores.py::test_nao_elegiveis_ficam_fora_da_taxa PASSED  
+tests/test_indicadores.py::test_estimar_prazo_recua_para_cidade_com_pouco_volume PASSED 
+tests/test_indicadores.py::test_atraso_evitavel_usa_distrito_mediano_e_ignora_quem_esta_acima PASSED 
+tests/test_indicadores.py::test_fila_atrasada_e_relativa_ao_servico PASSED 
+tests/test_indicadores.py::test_limite_padrao_quando_p80_nao_e_atingido PASSED 
+tests/test_indicadores.py::test_pontos_de_reincidencia_agrupam_mesmo_servico_e_local PASSED 
+tests/test_integracao.py::test_funil_fecha_com_a_tabela_fato PASSED      
+tests/test_integracao.py::test_96_distritos_e_nenhum_codigo_numerico PASSED 
+tests/test_integracao.py::test_invariantes_de_prazo PASSED               
+tests/test_integracao.py::test_tres_arquivos_com_periodos_contiguos_e_formatos_distintos PASSED 
+tests/test_integracao.py::test_servicos_nao_duplicados_por_grafia PASSED 
+tests/test_integracao.py::test_banco_nao_guarda_endereco PASSED          
+tests/test_integracao.py::test_restricoes_do_esquema_rejeitam_dado_incoerente PASSED 
+tests/test_integracao.py::test_consulta_parametrizada_trata_injecao_como_texto PASSED 
+tests/test_integracao.py::test_conexao_de_leitura_nao_escreve PASSED     
+tests/test_integracao.py::test_consultas_sql_de_referencia_executam PASSED 
+tests/test_integracao.py::test_recomendador_no_catalogo_real_acerta_top3_minimo PASSED 
+tests/test_integracao.py::test_painel_abre_e_atende_um_pedido PASSED     
+
+============================== 47 passed in 8.88s ==============================
