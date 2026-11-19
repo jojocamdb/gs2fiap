@@ -1,4 +1,4 @@
-"""Gera o diagrama de arquitetura (assets/fig0_arquitetura.png). Uso: python scripts/04_diagrama.py"""
+"""Gera o diagrama de arquitetura (assets/figuras/arquitetura.png). Uso: python scripts/04_diagrama.py"""
 from pathlib import Path
 
 import matplotlib
@@ -49,5 +49,5 @@ for yi, t, l in zip(y, tit, lin):
 caixa(86, 27, 23, 23, "Painel interativo", ["Streamlit + Plotly", "mapa, comparações,", "curvas por distrito", "gestor e liderança"], AZUL)
 caixa(86, 4, 23, 20, "Assistente do morador", ["serviço + prazo local", "IA generativa com trava", "dados pessoais", "mascarados"], LARANJA)
 
-fig.savefig(Path(__file__).resolve().parents[1] / "assets" / "fig0_arquitetura.png", bbox_inches="tight",
+fig.savefig(Path(__file__).resolve().parents[1] / "assets" / "figuras/arquitetura.png", bbox_inches="tight",
             facecolor="white")

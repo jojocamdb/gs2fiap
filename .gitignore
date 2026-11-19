@@ -1,7 +1,18 @@
+# Python
 __pycache__/
 *.pyc
 .pytest_cache/
 .venv/
+venv/
+
+# Segredos
 .env
-data/raw/*.csv
 .streamlit/secrets.toml
+
+# Dados brutos do portal (baixar conforme o README)
+data/raw/*.csv
+
+# Sistema e editores
+.DS_Store
+.vscode/
+.idea/

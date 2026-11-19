@@ -24,7 +24,7 @@ Global Solution 2026.2 · CitizenTech · Fase 7 · Graduação em Inteligência 
 
 ## 📜 Descrição
 
-![Tela inicial](assets/tela0_inicio.png)
+![Visão geral](assets/telas/visao_geral.png)
 
 Uma cidade melhor começa com uma gestão mais inteligente.
 
@@ -36,7 +36,7 @@ A pergunta de partida: o mesmo pedido de zeladoria leva o mesmo tempo em qualque
 
 **Para o morador:** o nome correto do serviço a partir de uma descrição em linguagem comum e o prazo que pedidos iguais levaram no distrito dele.
 
-![Onde agir primeiro](assets/tela4_agir.png)
+![Onde agir](assets/telas/onde_agir.png)
 
 Foram analisadas 433.077 demandas de zeladoria abertas entre janeiro e setembro de 2026 nos 96 distritos da cidade.
 
@@ -56,7 +56,7 @@ A hipótese inicial era de que a periferia seria atendida mais lentamente. Os da
 
 ### Arquitetura
 
-![Arquitetura](assets/fig0_arquitetura.png)
+![Arquitetura](assets/figuras/arquitetura.png)
 
 ### Integração entre disciplinas
 
@@ -78,33 +78,39 @@ A hipótese inicial era de que a periferia seria atendida mais lentamente. Os da
 ## 📁 Estrutura de pastas
 
 ```
-├── app.py                  painel Streamlit
-├── requirements.txt
-├── assets/                 figuras e capturas de tela usadas no PDF
-├── config/entrega.json     dados da capa e links da entrega
+├── app.py                    painel Streamlit (ponto de entrada)
+├── requirements.txt          dependências
+├── .streamlit/config.toml    tema do painel
+├── assets/
+│   ├── figuras/              gráficos gerados por scripts/02_analise.py e 04_diagrama.py
+│   └── telas/                capturas do painel em execução
+├── config/
+│   └── entrega.json          integrantes, turma e links usados no PDF
 ├── data/
-│   ├── raw/                CSVs do portal (não versionados, ver abaixo)
-│   └── processed/          zeladoria.db, modelo_prazo.joblib, resumo.json
-├── docs/               PDF da entrega e evidência dos testes
-├── scripts/
-│   ├── 01_etl.py           leitura, validação, limpeza e carga no banco
-│   ├── 02_analise.py       indicadores, K-Means, modelos, figuras
-│   ├── 03_pdf.py           gera o PDF da entrega
-│   ├── 04_diagrama.py      gera o diagrama de arquitetura
-│   └── 05_conformidade.py  confere a entrega contra as regras do enunciado
+│   ├── raw/                  CSVs do portal (não versionados, ver "Como executar")
+│   └── processed/            zeladoria.db, modelo_prazo.joblib, resumo.json
+├── docs/
+│   ├── GS2_ZelaSP.pdf        documento da entrega
+│   └── evidencias_pytest.txt saída da suíte de testes
+├── scripts/                  executados nesta ordem
+│   ├── 01_etl.py             leitura, validação, limpeza e carga no banco
+│   ├── 02_analise.py         indicadores, alerta, K-Means, modelos e figuras
+│   ├── 03_pdf.py             gera o PDF da entrega
+│   ├── 04_diagrama.py        gera o diagrama de arquitetura
+│   └── 05_conformidade.py    confere a entrega contra as regras do enunciado
 ├── sql/
-│   ├── schema.sql          modelo do banco
-│   └── consultas.sql       consultas analíticas de referência
-├── src/zeladoria/
-│   ├── config.py           parâmetros e recorte de zeladoria
-│   ├── etl.py              leitura e tratamento
-│   ├── db.py               carga e acesso ao banco
-│   ├── indicadores.py      Kaplan-Meier e índice de equidade
-│   ├── clusters.py         K-Means
-│   ├── modelo.py           classificadores e avaliação
-│   ├── recomendador.py     recomendação de serviço por texto
-│   └── assistente.py       orientação ao morador e travas da IA generativa
-└── tests/                  51 testes automatizados
+│   ├── schema.sql            modelo do banco
+│   └── consultas.sql         consultas analíticas de referência
+├── src/zeladoria/            pacote com a lógica, sem dependência do painel
+│   ├── config.py             parâmetros e recorte de zeladoria
+│   ├── etl.py                leitura e tratamento
+│   ├── db.py                 carga e acesso ao banco
+│   ├── indicadores.py        Kaplan-Meier, índice de equidade, prioridade e alerta
+│   ├── clusters.py           K-Means
+│   ├── modelo.py             classificadores e avaliação
+│   ├── recomendador.py       recomendação de serviço por texto
+│   └── assistente.py         orientação ao morador e travas da IA generativa
+└── tests/                    51 testes automatizados e consultas simuladas
 ```
 
 ## Como executar

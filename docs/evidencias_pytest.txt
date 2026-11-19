@@ -53,4 +53,4 @@ tests/test_integracao.py::test_consultas_sql_de_referencia_executam PASSED
 tests/test_integracao.py::test_recomendador_no_catalogo_real_acerta_top3_minimo PASSED 
 tests/test_integracao.py::test_painel_abre_e_atende_um_pedido PASSED     
 
-============================= 51 passed in 12.35s ==============================
+============================= 51 passed in 11.36s ==============================

@@ -6,6 +6,7 @@ import inspect
 
 import pandas as pd
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -67,6 +68,9 @@ def tabela(dados, larguras=None, fonte=7.8):
     return t
 
 
+CONTADOR = {"figura": 0, "tabela": 0}
+
+
 def figura(nome, largura_cm, legenda):
     from PIL import Image as PI
     cam = config.DIR_ASSETS / nome
@@ -75,7 +79,15 @@ def figura(nome, largura_cm, legenda):
     teto = 22.3 * cm                      # altura util da pagina, com folga para titulo e legenda
     if larg * h / w > teto:
         larg = teto * w / h
-    return [Image(str(cam), width=larg, height=larg * h / w), Paragraph(legenda, LEG)]
+    CONTADOR["figura"] += 1
+    legenda = re.sub(r"^Figura \d+\. ", "", legenda)
+    return [Image(str(cam), width=larg, height=larg * h / w),
+            Paragraph(f"Figura {CONTADOR['figura']}. {legenda}", LEG)]
+
+
+def legenda_tabela(texto):
+    CONTADOR["tabela"] += 1
+    return Paragraph(f"Tabela {CONTADOR['tabela']}. {texto}", LEG)
 
 
 def codigo(obj, max_linhas=60):
@@ -118,7 +130,7 @@ def montar():
 
     # ---------------------------------------------------------------- resumo visual
     s += [Paragraph("Resumo visual", H1)]
-    s += figura("tela0_inicio.png", 15.6,
+    s += figura("telas/visao_geral.png", 15.6,
                 "Aba Visão geral da aplicação, em execução sobre o banco real: resumo executivo dos achados.")
     s += [PageBreak()]
 
@@ -177,7 +189,7 @@ def montar():
         "recomendador de serviço por similaridade de texto. <b>Aplicação:</b> painel Streamlit com mapa, "
         "comparação entre distritos e um fluxo para o morador, com assistente de orientação restrito aos "
         "fatos calculados."),
-        *figura("fig0_arquitetura.png", 16.5, "Diagrama de arquitetura: do dado aberto ao uso pelo morador e pelo gestor."),
+        *figura("figuras/arquitetura.png", 16.5, "Diagrama de arquitetura: do dado aberto ao uso pelo morador e pelo gestor."),
         tabela([["Disciplina ou conteúdo", "Onde foi aplicado", "Por quê"],
                 ["Python e engenharia de software", "Pacote modular src/zeladoria, exceções próprias, logging, scripts de execução",
                  "Reprodutibilidade: o resultado inteiro é regenerado com três comandos"],
@@ -201,7 +213,7 @@ def montar():
                  "O morador digita texto livre em um serviço público"],
                 ["Visualização interativa", "Streamlit e Plotly: mapa, barras, curvas de permanência", "Tornar o resultado explorável por não técnicos"]],
                [4.0 * cm, 7.4 * cm, 5.6 * cm]),
-        Paragraph("Tabela 1. Integração entre disciplinas.", LEG),
+        legenda_tabela("Integração entre disciplinas."),
         Paragraph("2.2 Origem dos dados", H2), p(
         "Fonte: Portal de Dados Abertos da Prefeitura de São Paulo, conjunto <i>Dados do SP156 - "
         "Solicitações</i>, mantido pela Secretaria Municipal de Inovação e Tecnologia, disponível em "
@@ -213,7 +225,7 @@ def montar():
                [[a.arquivo, a.codificacao, a.separador, a.formato_data.replace("%", ""), mil(a.linhas),
                  f"{a.abertura_min} a {a.abertura_max}", a.data_corte] for a in arqs.itertuples()],
                [4.1 * cm, 1.8 * cm, 1.6 * cm, 2.2 * cm, 1.6 * cm, 3.9 * cm, 1.9 * cm], 7.2),
-        Paragraph("Tabela 2. Perfil detectado de cada arquivo. O terceiro trimestre é publicado em formato diferente.", LEG),
+        legenda_tabela("Perfil detectado de cada arquivo. O terceiro trimestre é publicado em formato diferente."),
         Paragraph("2.3 Qualidade e limitações dos dados encontradas", H2), p(
         "<b>Formatos incompatíveis.</b> Os dois primeiros arquivos usam ponto e vírgula, codificação "
         "Windows-1252 e datas no padrão dia/mês/ano. O terceiro usa vírgula, UTF-8 e mês/dia/ano. Ler o "
@@ -246,7 +258,7 @@ def montar():
         "certidões e ouvidorias. Cada exclusão é registrada em uma tabela de auditoria no próprio banco."),
         tabela([["Etapa", "Linhas"]] + [[e.replace("_", " "), mil(l)] for e, l in funil.itertuples(index=False)],
                [8 * cm, 3 * cm]),
-        Paragraph("Tabela 3. Funil de tratamento, gravado na tabela auditoria_funil.", LEG),
+        legenda_tabela("Funil de tratamento, gravado na tabela auditoria_funil."),
         Paragraph("2.5 Modelagem do banco", H2), p(
         "Banco SQLite com modelo dimensional: <b>dim_distrito</b> (96 linhas, com centróide e distância ao "
         "centro), <b>dim_servico</b> (64), <b>dim_canal</b> e <b>fato_demanda</b>. O banco rejeita por "
@@ -310,8 +322,8 @@ def montar():
                  b.distrito.title(), num(b.indice), pct(b.taxa_bruta), int(b.p50_dias)]
                 for a, b in zip(dist.head(8).itertuples(), dist.tail(8).iloc[::-1].itertuples())],
                [3.4 * cm, 1.4 * cm, 1.5 * cm, 2.1 * cm, 3.6 * cm, 1.4 * cm, 1.5 * cm, 2.1 * cm]),
-        Paragraph("Tabela 4. Distritos nos extremos do índice de equidade, janeiro a setembro de 2026.", LEG)]
-    s += figura("fig4_estabilidade.png", 7.2, "Figura 1. Índice por distrito no 2º e no 3º trimestres.")
+        legenda_tabela("Distritos nos extremos do índice de equidade, janeiro a setembro de 2026.")]
+    s += figura("figuras/estabilidade.png", 7.2, "Figura 1. Índice por distrito no 2º e no 3º trimestres.")
     _d = db.demandas()
     _e = _d[_d["elegivel_janela"] == 1]
     _c = _e.groupby("servico").agg(v=("resolvida_janela", "size"), a=("resolvida_janela", lambda x: (1 - x).sum()))
@@ -337,9 +349,9 @@ def montar():
         f"({pct(gui['p10'])} contra {pct(gui['p90'])}) e em tapa-buraco de "
         f"{num(100 * tb['amplitude_p90_p10'], 0)} pontos. A implicação prática é que uma política de "
         "equalização não precisa atuar sobre toda a zeladoria: precisa atuar sobre poucos serviços.")]
-    s += figura("fig2_servico_distritos.png", 14.5,
+    s += figura("figuras/servico_distritos.png", 14.5,
                 "Figura 2. Distribuição, entre distritos, da taxa de finalização em 30 dias para os oito serviços de maior volume.")
-    s += figura("fig5_km_tapa_buraco.png", 10.5,
+    s += figura("figuras/km_tapa_buraco.png", 10.5,
                 "Figura 3. Tapa-buraco nos distritos com menor e maior taxa de finalização, com a curva da cidade.")
     ce = R["centralidade"]
     s += [Paragraph("3.3 Ela não segue a lógica centro e periferia", H2), p(
@@ -355,7 +367,7 @@ def montar():
           "distância ao centro é uma aproximação grosseira de condição socioeconômica. O resultado "
           "sustentado é mais restrito: a desigualdade de prazo existe, é persistente e não se explica por "
           "centralidade.")]
-    s += figura("fig3_centralidade.png", 9.5, "Figura 4. Índice de equidade e distância ao centro. Cada ponto é um distrito.")
+    s += figura("figuras/centralidade.png", 9.5, "Figura 4. Índice de equidade e distância ao centro. Cada ponto é um distrito.")
     P = R["prioridade"]
     pares = db.ler("SELECT * FROM res_prioridade ORDER BY posicao LIMIT 10")
     s += [Paragraph("3.4 Onde agir primeiro", H2), p(
@@ -372,8 +384,8 @@ def montar():
                [[a.posicao, a.servico[:46], a.distrito.title(), mil(a.elegiveis), pct(a.taxa),
                  pct(a.referencia), mil(round(a.ganho))] for a in pares.itertuples()],
                [0.9 * cm, 6.4 * cm, 2.9 * cm, 1.5 * cm, 1.5 * cm, 1.9 * cm, 1.9 * cm], 7.2),
-        Paragraph("Tabela de prioridade: as dez combinações com maior atraso evitável.", LEG)]
-    s += figura("fig8_pareto.png", 10.5, "Concentração do atraso evitável nas combinações de serviço e distrito.")
+        legenda_tabela("As dez combinações de serviço e distrito com maior atraso evitável.")]
+    s += figura("figuras/pareto.png", 10.5, "Concentração do atraso evitável nas combinações de serviço e distrito.")
     s += [p(f"<b>Fila de atrasados.</b> No retrato de 08/10/2026 havia {mil(P['abertas_retrato'])} pedidos em "
             f"aberto entre os abertos de julho a setembro. Desses, <b>{mil(P['atrasadas'])}</b> estavam em "
             "aberto há mais dias do que 8 em cada 10 pedidos do mesmo serviço levaram na cidade. O critério é "
@@ -410,9 +422,9 @@ def montar():
                  [[pd.Timestamp(b.data).strftime("%d/%m/%Y"), mil(b.pedidos), mil(round(b.previsto)), mil(b.real),
                    f"{num(100 * b.erro_total, 1)}%", num(b.auc, 3), num(b.auc_referencia, 3)] for b in btab.itertuples()],
                  [2.3 * cm, 3 * cm, 2 * cm, 2 * cm, 2.4 * cm, 1.6 * cm, 2.6 * cm]),
-          Paragraph("Simulações do alerta antecipado em datas passadas.", LEG)]
-    s += figura("fig9_alerta.png", 12, "Total de pedidos que passaram de 30 dias: previsto pelo alerta, previsto pela referência e real.")
-    s += figura("tela4_agir.png", 12.2, "Aba Onde agir: plano de ação, alerta antecipado, fila de atrasados e pontos de reincidência.")
+          legenda_tabela("Simulações do alerta antecipado em datas passadas.")]
+    s += figura("figuras/alerta.png", 12, "Total de pedidos que passaram de 30 dias: previsto pelo alerta, previsto pela referência e real.")
+    s += figura("telas/onde_agir.png", 12.2, "Aba Onde agir: plano de ação, alerta antecipado, fila de atrasados e pontos de reincidência.")
     s += [Paragraph("3.5 Grupos de distritos", H2), p(
         f"O K-Means sobre variáveis padronizadas de atendimento, canal, volume e mix de assuntos indicou "
         f"k = {int(kk.loc[kk['silhueta'].idxmax(), 'k'])} pela maior silhueta média "
@@ -420,7 +432,7 @@ def montar():
         "formam um contínuo, não tipos bem separados. Os grupos servem como segmentação de leitura. O grupo "
         "de menor índice médio reúne 30 distritos, com maior peso de árvore e asfalto na demanda e mediana "
         "de prazo próxima de 8 dias, contra cerca de 3 dias nos demais.")]
-    s += figura("fig7_kmeans_k.png", 6.5, "Figura 5. Silhueta média por número de grupos.")
+    s += figura("figuras/kmeans_k.png", 6.5, "Figura 5. Silhueta média por número de grupos.")
     s += [Paragraph("3.6 Modelos preditivos", H2), p(
         f"Alvo: demanda finalizada em até {J} dias. Treino com demandas abertas de janeiro a junho "
         f"({mil(met['treino'].max())}), teste com as abertas de julho a setembro ({mil(met['teste'].max())}). "
@@ -429,7 +441,7 @@ def montar():
         tabela([["Modelo", "AUC", "Brier", "Log loss"]] +
                [[m.modelo, num(m.auc, 4), num(m.brier, 4), num(m.log_loss, 4)] for m in met.itertuples()],
                [7 * cm, 2 * cm, 2 * cm, 2 * cm]),
-        Paragraph("Tabela 5. Desempenho no conjunto de teste (3º trimestre).", LEG), p(
+        legenda_tabela("Desempenho no conjunto de teste (3º trimestre)."), p(
         f"Três leituras. Primeira: saber apenas o serviço já leva a AUC "
         f"{num(gb.loc['Baseline (taxa do servico)', 'auc'], 3)}, ou seja, o tipo de serviço é o principal "
         f"determinante do prazo. Segunda: o gradient boosting sem a variável distrito não supera essa "
@@ -441,7 +453,7 @@ def montar():
           "do teste, porque o 3º trimestre teve taxa geral maior que o período de treino, e superestima na "
           "faixa mais alta. Por isso o painel mostra a chance do modelo ao lado da frequência histórica "
           "observada, e não no lugar dela.")]
-    s += figura("fig6_modelos.png", 14, "Figura 6. Comparação de modelos e curva de calibração do gradient boosting.")
+    s += figura("figuras/modelos.png", 14, "Figura 6. Comparação de modelos e curva de calibração do gradient boosting.")
     rr = R["recomendador"]
     erros = reco[reco["top3"] == 0]
     s += [Paragraph("3.7 Recomendador de serviço", H2), p(
@@ -455,10 +467,10 @@ def montar():
         "; ".join(f"“{t}”" for t in erros["texto"]) + "."),
         Paragraph("3.8 Protótipo", H2), p(
         "As telas abaixo são capturas da aplicação em execução sobre o banco real.")]
-    s += figura("tela1_panorama.png", 15.5, "Figura 7. Aba Distritos: índice de equidade por distrito e relação com a distância ao centro.")
-    s += figura("tela2_servico.png", 15.5, "Figura 8. Aba de comparação do mesmo serviço entre distritos.")
-    s += figura("tela5_metodo.png", 13.5, "Aba Método: comparação de modelos, calibração, simulações do alerta e técnicas usadas.")
-    s += figura("tela3_pedido.png", 15.5,
+    s += figura("telas/distritos.png", 15.5, "Figura 7. Aba Distritos: índice de equidade por distrito e relação com a distância ao centro.")
+    s += figura("telas/servicos.png", 15.5, "Figura 8. Aba de comparação do mesmo serviço entre distritos.")
+    s += figura("telas/metodo.png", 13.5, "Aba Método: comparação de modelos, calibração, simulações do alerta e técnicas usadas.")
+    s += figura("telas/abrir_pedido.png", 15.5,
                 "Figura 9. Fluxo do morador: descrição livre, serviços sugeridos, prazo no distrito e orientação.")
     log = (RAIZ / "docs" / "evidencias_pytest.txt").read_text(encoding="utf-8")
     s += [Paragraph("3.9 Evidências de teste", H2), p(
@@ -497,7 +509,7 @@ def montar():
             ["Acerto do recomendador entre as 3 primeiras sugestões", f"{pct(rr['top3'], 1)} (simulado)", "Substituir por escolhas reais registradas no log de uso"],
             ["Pedidos abertos no serviço correto", "Sem linha de base", "Exige parceria com a Prefeitura para medir reclassificação de pedidos"]],
             [7.2 * cm, 4.2 * cm, 5.6 * cm]),
-        Paragraph("Tabela 6. Indicadores de impacto propostos.", LEG)]
+        legenda_tabela("Indicadores de impacto propostos.")]
 
     # ---------------------------------------------------------------- 4
     s += [Paragraph("4. Conclusões", H1), p(

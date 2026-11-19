@@ -29,7 +29,7 @@ COR, COR2, CINZA = "#B08D5E", "#B4544B", "#A3A3A3"
 def main():
     d = db.demandas()
     d["trimestre"] = d["data_abertura"].dt.quarter
-    config.DIR_ASSETS.mkdir(exist_ok=True)
+    (config.DIR_ASSETS / "figuras").mkdir(parents=True, exist_ok=True)
     resumo = {"geral": indicadores.resumo_prazo(d), "distritos": int(d["distrito"].nunique()),
               "servicos": int(d["id_servico"].nunique())}
 
@@ -155,7 +155,7 @@ def main():
     ax.set_xlabel("Pares serviço x distrito, do maior para o menor atraso evitável")
     ax.set_ylabel("% acumulado do atraso evitável"); ax.set_ylim(0, 102); ax.set_xlim(0, len(pares))
     ax.set_title("Poucos pares concentram a maior parte do atraso evitável")
-    fig.tight_layout(); fig.savefig(config.DIR_ASSETS / "fig8_pareto.png"); plt.close(fig)
+    fig.tight_layout(); fig.savefig(config.DIR_ASSETS / "figuras/pareto.png"); plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(7.2, 3.4))
     pos = np.arange(len(bt)); larg = 0.36
@@ -165,7 +165,7 @@ def main():
     ax.set_xticks(pos); ax.set_xticklabels([pd.Timestamp(v).strftime("%d/%m") for v in bt["data"]])
     ax.set_xlabel("Data da simulação"); ax.set_ylabel("Pedidos que passaram de 30 dias")
     ax.set_title("Alerta antecipado: previsto e real em seis datas passadas"); ax.legend(frameon=False, fontsize=8)
-    fig.tight_layout(); fig.savefig(config.DIR_ASSETS / "fig9_alerta.png"); plt.close(fig)
+    fig.tight_layout(); fig.savefig(config.DIR_ASSETS / "figuras/alerta.png"); plt.close(fig)
     print(json.dumps(resumo, indent=2, default=float, ensure_ascii=False))
     print(met.round(4).to_string(index=False))
     print(amp.head(12).round(3).to_string(index=False))
@@ -173,18 +173,7 @@ def main():
 
 def figuras(d, tab, amp, sd, met, cal, aval_k):
     A = config.DIR_ASSETS
-    # 1. indice por distrito
-    t = tab.sort_values("indice")
-    fig, ax = plt.subplots(figsize=(7.2, 11))
-    cores = [COR2 if s < 1 else COR if i > 1 else CINZA for i, s in zip(t["ic_inf"], t["ic_sup"])]
-    ax.hlines(t["distrito"], t["ic_inf"], t["ic_sup"], color=cores, lw=1.2)
-    ax.scatter(t["indice"], t["distrito"], color=cores, s=12, zorder=3)
-    ax.axvline(1, color="k", lw=.8, ls="--")
-    ax.set_xlabel("Índice de resolução em 30 dias padronizado pelo mix de serviços (cidade = 1,00)")
-    ax.set_title("Índice de equidade por distrito, jan-set 2026")
-    ax.tick_params(axis="y", labelsize=6); ax.margins(y=.005)
-    fig.tight_layout(); fig.savefig(A / "fig1_indice_distrito.png"); plt.close(fig)
-
+    (A / "figuras").mkdir(parents=True, exist_ok=True)
     # 2. mesmo servico, distritos diferentes
     top = amp.head(8)
     fig, ax = plt.subplots(figsize=(7.5, 3.8))
@@ -195,7 +184,7 @@ def figuras(d, tab, amp, sd, met, cal, aval_k):
     ax.set_yticklabels([s[:58] for s in top["servico"]], fontsize=7)
     ax.set_xlabel("% das demandas finalizadas em até 30 dias, por distrito")
     ax.set_title("Mesmo serviço, distritos diferentes (8 serviços de maior volume)")
-    ax.invert_yaxis(); fig.tight_layout(); fig.savefig(A / "fig2_servico_distritos.png"); plt.close(fig)
+    ax.invert_yaxis(); fig.tight_layout(); fig.savefig(A / "figuras/servico_distritos.png"); plt.close(fig)
 
     # 3. centralidade
     fig, ax = plt.subplots(figsize=(5.6, 3.6))
@@ -203,7 +192,7 @@ def figuras(d, tab, amp, sd, met, cal, aval_k):
     ax.axhline(1, color="k", lw=.8, ls="--")
     ax.set_xlabel("Distância do distrito à Praça da Sé (km)"); ax.set_ylabel("Índice de equidade")
     ax.set_title("Índice x distância ao centro")
-    fig.tight_layout(); fig.savefig(A / "fig3_centralidade.png"); plt.close(fig)
+    fig.tight_layout(); fig.savefig(A / "figuras/centralidade.png"); plt.close(fig)
 
     # 4. estabilidade
     fig, ax = plt.subplots(figsize=(4.2, 3.8))
@@ -211,7 +200,7 @@ def figuras(d, tab, amp, sd, met, cal, aval_k):
     lim = [0.75, 1.3]; ax.plot(lim, lim, color="k", lw=.8, ls="--")
     ax.set_xlabel("Índice no 2º trimestre"); ax.set_ylabel("Índice no 3º trimestre")
     ax.set_title("Estabilidade do índice entre trimestres")
-    fig.tight_layout(); fig.savefig(A / "fig4_estabilidade.png"); plt.close(fig)
+    fig.tight_layout(); fig.savefig(A / "figuras/estabilidade.png"); plt.close(fig)
 
     # 5. Kaplan-Meier tapa-buraco: melhor x pior distrito com volume
     tb = d[d["servico"] == "Tapa-buraco"]
@@ -228,7 +217,7 @@ def figuras(d, tab, amp, sd, met, cal, aval_k):
         ax.set_xlim(0, 150); ax.set_ylim(0, 100)
         ax.set_xlabel("Dias desde a abertura"); ax.set_ylabel("% das demandas ainda em aberto")
         ax.set_title("Tapa-buraco: curva de permanência em aberto (Kaplan-Meier)"); ax.legend(frameon=False)
-        fig.tight_layout(); fig.savefig(A / "fig5_km_tapa_buraco.png"); plt.close(fig)
+        fig.tight_layout(); fig.savefig(A / "figuras/km_tapa_buraco.png"); plt.close(fig)
 
     # 6. modelos e calibracao
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(8.2, 3.3))
@@ -239,14 +228,14 @@ def figuras(d, tab, amp, sd, met, cal, aval_k):
     a2.plot(cal["previsto"], cal["observado"], marker="o", color=COR2, ms=4)
     a2.set_xlabel("Probabilidade prevista"); a2.set_ylabel("Frequência observada")
     a2.set_title("Calibração do gradient boosting")
-    fig.tight_layout(); fig.savefig(A / "fig6_modelos.png"); plt.close(fig)
+    fig.tight_layout(); fig.savefig(A / "figuras/modelos.png"); plt.close(fig)
 
     # 7. escolha de k
     fig, ax = plt.subplots(figsize=(4.2, 2.8))
     ax.plot(aval_k["k"], aval_k["silhueta"], marker="o", color=COR)
     ax.set_xlabel("Número de grupos (k)"); ax.set_ylabel("Silhueta média")
     ax.set_title("Escolha de k no K-Means")
-    fig.tight_layout(); fig.savefig(A / "fig7_kmeans_k.png"); plt.close(fig)
+    fig.tight_layout(); fig.savefig(A / "figuras/kmeans_k.png"); plt.close(fig)
 
 
 if __name__ == "__main__":
