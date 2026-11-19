@@ -6,6 +6,8 @@
 
 *Transparência para quem vive. Inteligência para quem cuida.*
 
+**QUERO CONCORRER**
+
 Global Solution 2026.2 · CitizenTech · Fase 7 · Graduação em Inteligência Artificial
 
 ## Grupo 67
@@ -202,7 +204,7 @@ Prefeitura de São Paulo, Secretaria Municipal de Inovação e Tecnologia. Dados
 
 ### 📢 Observações Gerais
 
-* **Participação na Competição:** [ ] Sim, aceitamos participar / [x] Não vamos participar.
+* **Participação na Competição:** [x] Sim, aceitamos participar / [ ] Não vamos participar.
 * A chamada a um provedor real de IA generativa não foi validada até a entrega. Sem chave de API, o painel usa redação determinística, que é o caminho testado.
 
 ## Histórico de lançamentos
