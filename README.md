@@ -12,6 +12,7 @@ Global Solution 2026.2 · CitizenTech · Fase 7 · Graduação em Inteligência 
 
 ## 👨‍🎓 Integrantes:
 - Jocasta de Kacia Bortolacci · RM564730
+- Pedro Henrique do Nascimento Souza · RM565326
 
 ## 👩‍🏫 Professores:
 
@@ -48,6 +49,7 @@ Foram analisadas 433.077 demandas de zeladoria abertas entre janeiro e setembro 
 | Ela se concentra em poucos serviços | Poda de árvore: 26% finalizados em 30 dias no distrito do percentil 10, 79% no do percentil 90. Entulho: 96% e 99% |
 | Ela não segue a lógica centro e periferia | Spearman de 0,23 entre índice e distância ao centro, no sentido contrário ao esperado |
 | O atraso evitável é concentrado | 100 das 1.543 combinações de serviço e distrito respondem por 66% dele |
+| É possível prever quais pedidos vão passar do prazo | Alerta por sobrevivência condicional: em 6 simulações em datas passadas, o total previsto ficou a no máximo 5,4% do real (a taxa histórica do serviço erra 30% para menos) |
 | O distrito acrescenta pouco, mas acrescenta, à previsão | AUC 0,820 sem distrito e 0,843 com distrito, em validação temporal |
 
 A hipótese inicial era de que a periferia seria atendida mais lentamente. Os dados não sustentaram a hipótese, e o projeto reporta isso como resultado. As ressalvas dessa leitura estão no PDF, seção 3.3.
@@ -67,6 +69,7 @@ A hipótese inicial era de que a periferia seria atendida mais lentamente. Os da
 | Machine Learning não supervisionado | K-Means com escolha de k por silhueta |
 | Machine Learning supervisionado | Regressão logística e gradient boosting com validação temporal e baseline |
 | Redes neurais | MLP comparada aos demais modelos |
+| Análise de sobrevivência preditiva | Alerta antecipado de pedidos que devem passar de 30 dias, validado por simulação em datas passadas |
 | Recomendação e PLN | TF-IDF de palavras e caracteres, similaridade de cosseno, léxico curado |
 | IA generativa | Redação da orientação restrita a uma ficha de fatos, com verificador de números |
 | Cibersegurança e LGPD | Minimização de dados, mascaramento de CPF, telefone e e-mail, SQL parametrizado, conexão somente leitura, log sem conteúdo |
@@ -87,7 +90,8 @@ A hipótese inicial era de que a periferia seria atendida mais lentamente. Os da
 │   ├── 01_etl.py           leitura, validação, limpeza e carga no banco
 │   ├── 02_analise.py       indicadores, K-Means, modelos, figuras
 │   ├── 03_pdf.py           gera o PDF da entrega
-│   └── 04_diagrama.py      gera o diagrama de arquitetura
+│   ├── 04_diagrama.py      gera o diagrama de arquitetura
+│   └── 05_conformidade.py  confere a entrega contra as regras do enunciado
 ├── sql/
 │   ├── schema.sql          modelo do banco
 │   └── consultas.sql       consultas analíticas de referência
@@ -100,7 +104,7 @@ A hipótese inicial era de que a periferia seria atendida mais lentamente. Os da
 │   ├── modelo.py           classificadores e avaliação
 │   ├── recomendador.py     recomendação de serviço por texto
 │   └── assistente.py       orientação ao morador e travas da IA generativa
-└── tests/                  47 testes automatizados
+└── tests/                  51 testes automatizados
 ```
 
 ## Como executar
@@ -193,7 +197,6 @@ Prefeitura de São Paulo, Secretaria Municipal de Inovação e Tecnologia. Dados
 ### 📢 Observações Gerais
 
 * **Participação na Competição:** [ ] Sim, aceitamos participar / [x] Não vamos participar.
-* O projeto foi desenvolvido por uma integrante (Grupo 67).
 * A chamada a um provedor real de IA generativa não foi validada até a entrega. Sem chave de API, o painel usa redação determinística, que é o caminho testado.
 
 ## Histórico de lançamentos

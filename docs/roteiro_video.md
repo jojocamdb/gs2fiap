@@ -1,93 +1,102 @@
 # Roteiro do vídeo (até 5 minutos)
 
-Gravação de tela com narração. Deixe o painel aberto e o terminal pronto antes de gravar.
-Tempo-alvo: 4min55, sem folga. Ensaie uma vez com cronômetro. Se passar de 5min, corte o bloco de agrupamento e modelos e o exemplo do CPF.
+Gravação de tela com narração. Tempo-alvo: 4min50. Ensaie uma vez com cronômetro.
 
-## 0:00 a 0:20 · Abertura (câmera ou capa do PDF)
+Antes de gravar: painel aberto na aba Visão geral, navegador em tela cheia com zoom de 110%, e um terminal
+pronto na pasta do projeto, com o ambiente ativo e o comando `python -m pytest tests -q` já digitado.
 
-"Grupo 67, Jocasta Bortolacci.
-Este é o ZelaSP, uma plataforma de inteligência urbana: transparência para quem vive, inteligência para quem cuida.
-A pergunta de partida: o mesmo pedido de zeladoria leva o mesmo tempo em qualquer distrito de São Paulo?"
+## 1. Abertura (0:00 a 0:25)
 
-## 0:20 a 0:55 · Problema e dado (aba Visão geral, rolando devagar)
+**Tela:** aba Visão geral, topo.
+**Mostrar:** o nome ZelaSP e o título. Não role ainda.
+**Fala:** "Grupo 67, Jocasta Bortolacci e Pedro Henrique Souza. Este é o ZelaSP, uma prova de conceito de plataforma de inteligência
+urbana. O problema: quem pede um serviço de zeladoria em São Paulo não sabe quanto tempo vai esperar. E a
+gestão, com centenas de milhares de pedidos por trimestre, precisa de uma leitura clara de prioridades: onde
+agir primeiro para atender mais gente. O público são moradores e gestores das subprefeituras."
 
-"Quem abre um pedido no SP156 não sabe quanto tempo ele costuma levar, nem se seria atendido mais rápido em outro bairro.
-Usei os dados abertos do SP156: 433 mil pedidos de zeladoria, de janeiro a setembro de 2026, nos 96 distritos.
-Na cidade, 75% são finalizados em 30 dias. Entre distritos, vai de 58 a 88%."
+## 2. O problema em números (0:25 a 0:55)
 
-Pare no bloco "O mesmo buraco, dois distritos".
+**Tela:** aba Visão geral.
+**Mostrar:** os cinco números do topo, parando em "54 dias". Depois as barras de volume e atraso.
+**Fala:** "Usei dados abertos reais do SP156: 433 mil pedidos de zeladoria, de janeiro a setembro de 2026.
+Metade é resolvida em 4 dias, mas um em cada cinco espera mais de 54. E o atraso não está espalhado: três
+serviços, tapa-buraco, poda de árvore e guias e sarjetas, somam 35% do volume e 63% do atraso."
 
-"O mesmo pedido de tapa-buraco: em um distrito, metade é finalizada em 6 dias. Em outro, em 70."
+## 3. Tratamento dos dados (0:55 a 1:20)
 
-Desça até o gráfico de pontos.
+**Tela:** aba Método. Abra o painel "Dados e tratamento".
+**Mostrar:** a coluna de formato de data, em que a terceira linha difere das outras. Depois o funil.
+**Fala:** "O tratamento foi a parte mais crítica. Os arquivos do portal têm formatos diferentes: um deles traz
+as datas no padrão mês/dia. O programa detecta o formato de cada arquivo e interrompe a carga se houver
+dúvida. Os dados vão para um banco relacional, com modelo dimensional e restrições de integridade."
 
-"E a diferença não está em todo serviço. Entulho é igual na cidade inteira. Guias, galerias e poda de árvore, não."
+## 4. Método e equidade (1:20 a 1:50)
 
-## 0:55 a 1:45 · Decisões de método (aba Método, depois aba Distritos)
+**Tela:** aba Distritos.
+**Mostrar:** os cinco números do topo. Passe o mouse em dois círculos do mapa. Role até os três perfis.
+**Fala:** "17% dos pedidos ainda estão em aberto, então usei Kaplan-Meier em vez de média. E como distritos
+pedem serviços diferentes, criei um índice que compara cada um com o esperado para o seu conjunto de
+serviços. Resultado: 44 dos 96 distritos resolvem menos que o esperado, e isso não é centro contra periferia.
+O K-Means separa três perfis de distrito."
 
-Mostre a tabela de arquivos lidos e o funil.
+## 5. Onde está a desigualdade (1:50 a 2:10)
 
-"Três decisões sustentam o resultado.
-Primeira: os arquivos do portal têm formatos diferentes. O terceiro trimestre vem com data no padrão mês/dia. Lido sem validação, ele troca datas sem dar erro. O ETL detecta o formato de cada arquivo e para se houver ambiguidade.
-Segunda: 17% das demandas ainda estão em aberto. Média só das finalizadas subestima o prazo. Usei Kaplan-Meier, que aproveita as abertas.
-Terceira: distritos pedem serviços diferentes. Comparar taxa bruta mistura desempenho com tipo de pedido. O índice de equidade compara cada distrito com o esperado para o mix dele."
+**Tela:** aba Serviços.
+**Mostrar:** o gráfico de barras do topo. Depois os quatro números da poda de árvore.
+**Fala:** "No mesmo serviço, o distrito pode mudar o resultado em mais de 40 pontos. Em poda de árvore, um
+distrito finaliza 26% em 30 dias e outro, 79%. Remoção de entulho é igual na cidade toda."
 
-Vá para a aba Distritos e passe o mouse em dois distritos no mapa.
+## 6. Valor para a gestão (2:10 a 2:55)
 
-## 1:45 a 2:35 · Resultado principal (aba Serviços)
+**Tela:** aba Onde agir.
+**Mostrar:** os quatro números. Arraste "Frentes a priorizar" de 50 para 100. Role até o Alerta antecipado e
+aponte, no gráfico da direita, a barra dourada e o traço branco em cada data.
+**Fala:** "Para a gestão, o sistema propõe uma ordem de prioridade. Cem frentes de serviço e distrito
+concentram 66% do atraso evitável. E há um alerta antecipado: um modelo de sobrevivência estima quais pedidos
+em aberto vão passar de 30 dias, considerando há quanto tempo cada um já espera. Simulei em seis datas
+passadas, e o total previsto ficou a no máximo 5% do real. A taxa histórica simples erra 30%."
 
-"O resultado: a desigualdade existe, é estável entre trimestres e está concentrada em poucos serviços.
-Remoção de entulho é praticamente igual na cidade inteira. Poda de árvore vai de 26% em um distrito a 79% em outro."
+## 7. Valor para o morador (2:55 a 3:30)
 
-Selecione Tapa-buraco e mostre a curva de dois distritos.
+**Tela:** aba Abrir pedido.
+**Mostrar:** digite `galho de árvore encostando na fiação, precisa podar` e aperte Enter. Aponte os três
+serviços, os quatro números e o gráfico "De onde vem a estimativa". Troque o distrito uma vez.
+**Fala:** "Para o morador: ele descreve o problema com as próprias palavras. Um recomendador com TF-IDF e
+similaridade de cosseno sugere o serviço, e o sistema mostra o prazo no distrito dele, com o histórico e a
+estimativa do modelo. Dados pessoais são mascarados. A orientação pode ser redigida por IA generativa, com
+uma trava: se a resposta trouxer um número que o sistema não calculou, ela é descartada."
 
-"E um resultado que contrariou minha hipótese: não é centro contra periferia. A correlação com a distância ao centro é fraca e de sinal contrário. Isso não prova que a periferia é mais bem atendida, porque a base só tem o que foi registrado, e finalizada não é o mesmo que resolvida."
+## 8. Modelos (3:30 a 3:50)
 
-## 2:35 a 3:10 · Onde agir primeiro (aba Onde agir)
+**Tela:** aba Método.
+**Mostrar:** o gráfico de AUC por modelo e a calibração.
+**Fala:** "Comparei regressão logística, gradient boosting e rede neural, com validação temporal. Só o tipo
+de serviço já dá AUC de 0,82. Com o distrito, 0,84. A rede neural empatou com o gradient boosting."
 
-"Saber o prazo não reduz o prazo. Por isso a segunda aba é para a prefeitura.
-Se cada combinação de serviço e distrito abaixo da referência alcançasse o distrito mediano, seriam 14 mil pedidos a mais finalizados em 30 dias. E 100 combinações concentram 66% disso."
+## 9. Testes (3:50 a 4:05)
 
-Mova o controle de 50 para 100 e mostre a tabela.
+**Tela:** terminal.
+**Mostrar:** aperte Enter no comando já digitado e espere aparecer "51 passed".
+**Fala:** "São 51 testes automatizados, cobrindo leitura dos arquivos, cálculos estatísticos, o alerta,
+integridade do banco, injeção de SQL e as travas da IA."
 
-"Aqui está a fila de pedidos que já passaram do prazo típico do próprio serviço, por subprefeitura. E aqui, os pontos onde vários moradores pedem a mesma coisa a menos de 100 metros: uma ida da equipe resolve vários pedidos."
+## 10. Limitações e fechamento (4:05 a 4:45)
 
-"Um cuidado: priorizar por volume favorece quem reclama mais. Por isso a comparação é sempre com a referência do próprio serviço."
+**Tela:** aba Método. Abra o painel "Limitações".
+**Mostrar:** a lista inteira.
+**Fala:** "Limitações: finalizado é encerramento no sistema, não execução confirmada. A base só tem o que foi
+registrado. O alerta foi validado por simulação, não em operação. E a IA generativa não foi validada com um
+provedor real. O projeto integra tratamento de dados, banco SQL, estatística, aprendizado supervisionado e
+não supervisionado, redes neurais, recomendação, IA generativa, segurança e visualização. Contribui para os
+ODS 11, 10 e 16, e o impacto se mede pela diferença de prazo entre distritos no mesmo serviço. Obrigada."
 
-## 3:10 a 3:25 · Agrupamento e modelos (aba Método, painel Modelos)
+## Se passar de 5 minutos
 
-"Nos modelos, com validação temporal, só o tipo de serviço já dá AUC 0,82, e o distrito leva a 0,84. A rede neural empata com o gradient boosting. O K-Means separa três grupos de distritos, com silhueta baixa, que eu reporto."
-
-## 3:25 a 4:10 · Demonstração para o morador (aba Abrir pedido)
-
-Digite: `galho de árvore encostando na fiação, precisa podar`. Escolha um distrito.
-
-"O morador descreve o problema com as palavras dele. O recomendador, com TF-IDF e similaridade de cosseno, sugere o serviço certo. O sistema mostra o prazo naquele distrito: metade finalizada em tantos dias, oito em cada dez em tantos."
-
-Troque o distrito e mostre os números mudando.
-
-Se estiver apertado de tempo, pule o exemplo do CPF e só mencione.
-
-Digite um texto com CPF fictício: `buraco na rua, meu cpf é 123.456.789-09`.
-
-"Dado pessoal é mascarado antes de qualquer uso. A orientação é redigida a partir de uma ficha de fatos. Com IA generativa ativa, a resposta é conferida: se trouxer um número que não está na ficha, é descartada."
-
-Abra o expansor da ficha de fatos.
-
-## 4:10 a 4:30 · Banco e testes (terminal)
-
-Rode `python -m pytest tests -q` e mostre o resultado.
-
-"Os dados ficam em um banco relacional com modelo dimensional e restrições de integridade. Endereço não é armazenado. São 47 testes automatizados, incluindo injeção de SQL e as travas da IA."
-
-## 4:30 a 4:55 · Integração, ODS e fechamento
-
-"O projeto integra tratamento de dados, banco SQL, estatística, aprendizado supervisionado e não supervisionado, redes neurais, recomendação, IA generativa, segurança e visualização interativa.
-Contribui para os ODS 11, 10 e 16. O impacto se mede pela diferença de prazo entre distritos no mesmo serviço, recalculada a cada trimestre.
-Limitações e próximos passos estão no PDF. ZelaSP: uma cidade melhor começa com uma gestão mais inteligente. Obrigada."
+Corte nesta ordem: o bloco 8, a troca de distrito no bloco 7, e a rolagem até os perfis no bloco 4.
 
 ## Antes de publicar
 
-- YouTube em modo Não listado.
+- YouTube em modo Não listado. Teste o link em janela anônima.
 - Não diga a frase de participação na competição: a entrega é só para nota.
-- Se a IA generativa não estiver configurada, o painel mostra "redação padrão". Nesse caso, diga "quando a IA generativa está ativa" em vez de afirmar que ela está rodando.
+- Se a IA generativa não estiver configurada, o painel mostra "redação padrão". Diga "pode ser redigida por
+  IA generativa", como está no roteiro, e não que ela está rodando.

@@ -1,5 +1,5 @@
 ============================= test session starts ==============================
-collecting ... collected 47 items
+collecting ... collected 51 items
 
 tests/test_assistente_recomendador.py::test_recomendador_vocabulario_popular[tem uma cratera na rua-1] PASSED 
 tests/test_assistente_recomendador.py::test_recomendador_vocabulario_popular[precisa podar o galho-2] PASSED 
@@ -36,6 +36,10 @@ tests/test_indicadores.py::test_atraso_evitavel_usa_distrito_mediano_e_ignora_qu
 tests/test_indicadores.py::test_fila_atrasada_e_relativa_ao_servico PASSED 
 tests/test_indicadores.py::test_limite_padrao_quando_p80_nao_e_atingido PASSED 
 tests/test_indicadores.py::test_pontos_de_reincidencia_agrupam_mesmo_servico_e_local PASSED 
+tests/test_indicadores.py::test_curva_sobrevivencia_em_degraus PASSED    
+tests/test_indicadores.py::test_idade_do_pedido_aumenta_o_risco PASSED   
+tests/test_indicadores.py::test_alerta_recua_para_o_servico_e_para_a_cidade PASSED 
+tests/test_indicadores.py::test_retrato_esconde_o_que_aconteceu_depois PASSED 
 tests/test_integracao.py::test_funil_fecha_com_a_tabela_fato PASSED      
 tests/test_integracao.py::test_96_distritos_e_nenhum_codigo_numerico PASSED 
 tests/test_integracao.py::test_invariantes_de_prazo PASSED               
@@ -49,4 +53,4 @@ tests/test_integracao.py::test_consultas_sql_de_referencia_executam PASSED
 tests/test_integracao.py::test_recomendador_no_catalogo_real_acerta_top3_minimo PASSED 
 tests/test_integracao.py::test_painel_abre_e_atende_um_pedido PASSED     
 
-============================== 47 passed in 8.88s ==============================
+============================= 51 passed in 12.35s ==============================

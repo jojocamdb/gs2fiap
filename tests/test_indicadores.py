@@ -114,3 +114,43 @@ def test_pontos_de_reincidencia_agrupam_mesmo_servico_e_local():
     p = ind.pontos_de_reincidencia(a, minimo=3)
     assert len(p) == 1 and p["pedidos"].iloc[0] == 3 and p["registros"].iloc[0] == 4
     assert p["dias_mais_antigo"].iloc[0] == 9
+
+
+def test_curva_sobrevivencia_em_degraus():
+    s = ind.curva_sobrevivencia([1, 2, 2, 4, 5], [1, 1, 0, 1, 0], ate=6)
+    assert s[0] == 1.0 and s[1] == pytest.approx(0.8) and s[3] == pytest.approx(0.6)
+    assert s[4] == pytest.approx(0.3) and s[6] == pytest.approx(0.3)
+
+
+def _historico():
+    # servico 1: metade fecha no dia 2, a outra metade fica em aberto ate o dia 40
+    return pd.DataFrame({"id_servico": 1, "id_distrito": 1, "dias": [2] * 50 + [40] * 50,
+                         "finalizada": [1] * 50 + [0] * 50})
+
+
+def test_idade_do_pedido_aumenta_o_risco():
+    m = ind.ajustar_alerta(_historico(), ate=30)
+    novos = pd.DataFrame({"id_servico": [1, 1], "id_distrito": [1, 1], "dias": [0, 10]})
+    p = ind.prob_passar_da_janela(novos, m, ate=30)
+    assert p[0] == pytest.approx(0.5)      # recem aberto: metade estoura
+    assert p[1] == pytest.approx(1.0)      # ja passou do dia 2 sem fechar: estoura
+    sem = ind.prob_passar_da_janela(novos, m, ate=30, usar_idade=False)
+    assert sem.tolist() == pytest.approx([0.5, 0.5])
+
+
+def test_alerta_recua_para_o_servico_e_para_a_cidade():
+    m = ind.ajustar_alerta(_historico(), ate=30)
+    outros = pd.DataFrame({"id_servico": [1, 99], "id_distrito": [77, 77], "dias": [0, 0]})
+    p = ind.prob_passar_da_janela(outros, m, ate=30)
+    assert p.tolist() == pytest.approx([0.5, 0.5])
+
+
+def test_retrato_esconde_o_que_aconteceu_depois():
+    df = pd.DataFrame({
+        "data_abertura": pd.to_datetime(["2026-01-01", "2026-01-10", "2026-02-01"]),
+        "data_finalizacao": ["2026-01-05", "2026-01-25", None],
+        "data_corte": "2026-03-01", "finalizada": [1, 1, 0], "dias": [4, 15, 28]})
+    r = ind.retrato_em(df, "2026-01-15")
+    assert len(r) == 2                                   # o pedido de fevereiro ainda nao existia
+    assert r["finalizada"].tolist() == [1, 0]            # o segundo so fecharia no dia 25
+    assert r["dias"].tolist() == [4, 5]

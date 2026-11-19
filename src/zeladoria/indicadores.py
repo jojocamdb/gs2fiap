@@ -161,3 +161,85 @@ def pontos_de_reincidencia(abertas: pd.DataFrame, minimo: int = 3) -> pd.DataFra
     g = a.groupby(["id_servico", "servico", "distrito", "subprefeitura", "latitude", "longitude"]).agg(
         pedidos=("dias", "size"), registros=("registros", "sum"), dias_mais_antigo=("dias", "max")).reset_index()
     return g[g["pedidos"] >= minimo].sort_values(["pedidos", "dias_mais_antigo"], ascending=False)
+
+
+# --------------------------------------------------------------------------
+# Alerta antecipado: quais pedidos em aberto devem passar da janela
+# --------------------------------------------------------------------------
+
+def curva_sobrevivencia(dias, evento, ate: int = config.JANELA_DIAS) -> np.ndarray:
+    """S(t) = fracao ainda em aberto apos t dias, para t = 0..ate (Kaplan-Meier em degraus)."""
+    km = kaplan_meier(dias, evento)
+    s = np.ones(ate + 1)
+    if len(km):
+        pos = np.searchsorted(km["dia"].to_numpy(), np.arange(ate + 1), side="right") - 1
+        s = np.where(pos >= 0, km["em_aberto"].to_numpy()[np.clip(pos, 0, None)], 1.0)
+    return s
+
+
+def ajustar_alerta(hist: pd.DataFrame, minimo: int = config.MIN_DEMANDAS,
+                   ate: int = config.JANELA_DIAS) -> dict:
+    """Curvas por servico e, havendo volume, por (servico, distrito)."""
+    modelo = {"geral": curva_sobrevivencia(hist["dias"], hist["finalizada"], ate), "servico": {}, "par": {}}
+    for sv, parte in hist.groupby("id_servico"):
+        modelo["servico"][sv] = curva_sobrevivencia(parte["dias"], parte["finalizada"], ate)
+    for (sv, di), parte in hist.groupby(["id_servico", "id_distrito"]):
+        if len(parte) >= minimo:
+            modelo["par"][(sv, di)] = curva_sobrevivencia(parte["dias"], parte["finalizada"], ate)
+    return modelo
+
+
+def prob_passar_da_janela(abertos: pd.DataFrame, modelo: dict, ate: int = config.JANELA_DIAS,
+                          usar_idade: bool = True, usar_distrito: bool = True) -> np.ndarray:
+    """P(nao finalizar ate o dia `ate` | ainda em aberto no dia k) = S(ate) / S(k).
+
+    Um pedido que ja esta aberto ha 20 dias tem mais chance de estourar do que um
+    aberto hoje: a idade do pedido e informacao, e a taxa historica simples a ignora.
+    """
+    saida = np.empty(len(abertos))
+    for i, (sv, di, k) in enumerate(zip(abertos["id_servico"], abertos["id_distrito"], abertos["dias"])):
+        s = modelo["par"].get((sv, di)) if usar_distrito else None
+        if s is None:
+            s = modelo["servico"].get(sv, modelo["geral"])
+        base = s[min(int(k), ate)] if usar_idade else 1.0
+        saida[i] = 1.0 if base <= 0 else min(1.0, s[ate] / base)
+    return saida
+
+
+def retrato_em(df: pd.DataFrame, data) -> pd.DataFrame:
+    """Reconstroi o que se sabia na data informada: pedidos ja abertos, com o status daquele dia."""
+    data = pd.Timestamp(data)
+    r = df[df["data_abertura"] <= data].copy()
+    limite = np.minimum(pd.to_datetime(r["data_corte"]), data)
+    fim = pd.to_datetime(r["data_finalizacao"])
+    r["finalizada"] = ((r["finalizada"] == 1) & (fim <= limite)).astype(int)
+    r["dias"] = (np.where(r["finalizada"] == 1, fim, limite) - r["data_abertura"]).dt.days
+    return r
+
+
+def backtest_alerta(df: pd.DataFrame, data, ate: int = config.JANELA_DIAS) -> dict | None:
+    """Simula o alerta em uma data passada e compara com o que de fato aconteceu.
+
+    Treino: so o que era conhecido naquela data. Alvo: pedidos abertos ha menos de
+    `ate` dias e ainda em aberto. Desfecho real: se foram finalizados ate o dia `ate`.
+    """
+    from sklearn.metrics import brier_score_loss, roc_auc_score
+
+    data = pd.Timestamp(data)
+    visto = retrato_em(df, data)
+    idade = (data - visto["data_abertura"]).dt.days
+    # desfecho real conhecido: o arquivo precisa ter sido extraido `ate` dias apos a abertura
+    alvo = visto[(visto["finalizada"] == 0) & (idade < ate) & (visto["elegivel_janela"] == 1)
+                 & (pd.to_datetime(visto["data_corte"]) > data)]
+    if len(alvo) < 100:
+        return None
+    modelo = ajustar_alerta(visto, ate=ate)
+    real = 1 - df.loc[alvo.index, "resolvida_janela"].to_numpy()
+    p = prob_passar_da_janela(alvo, modelo, ate)
+    p_sem_idade = prob_passar_da_janela(alvo, modelo, ate, usar_idade=False, usar_distrito=False)
+    return {"data": str(data.date()), "pedidos": int(len(alvo)), "previsto": float(p.sum()),
+            "real": int(real.sum()), "auc": float(roc_auc_score(real, p)),
+            "brier": float(brier_score_loss(real, p)),
+            "previsto_referencia": float(p_sem_idade.sum()),
+            "auc_referencia": float(roc_auc_score(real, p_sem_idade)),
+            "brier_referencia": float(brier_score_loss(real, p_sem_idade))}

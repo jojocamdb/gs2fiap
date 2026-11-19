@@ -44,6 +44,17 @@
     "pontos_3": 1145,
     "pontos_5": 292
   },
+  "alerta": {
+    "data_retrato": "2026-10-08",
+    "abertos_recentes": 11459,
+    "devem_passar": 9345.44660561972,
+    "simulacoes": 6,
+    "erro_total_max": 0.05423651341217006,
+    "erro_total_referencia_medio": -0.30474711370639596,
+    "auc_min": 0.813656013381526,
+    "auc_max": 0.8661995070542364,
+    "auc_referencia_medio": 0.6994681162838385
+  },
   "recomendador": {
     "consultas": 40,
     "top1": 0.75,

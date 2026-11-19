@@ -3,6 +3,8 @@
 Uso: python scripts/03_pdf.py
 """
 import inspect
+
+import pandas as pd
 import json
 import sys
 from pathlib import Path
@@ -117,7 +119,7 @@ def montar():
     # ---------------------------------------------------------------- resumo visual
     s += [Paragraph("Resumo visual", H1)]
     s += figura("tela0_inicio.png", 15.6,
-                "Tela inicial da aplicação em execução sobre o banco real: para que serve, o que faz e o principal resultado.")
+                "Aba Visão geral da aplicação, em execução sobre o banco real: resumo executivo dos achados.")
     s += [PageBreak()]
 
     # ---------------------------------------------------------------- 1
@@ -189,6 +191,8 @@ def montar():
                 ["Machine Learning supervisionado", "Regressão logística e gradient boosting com validação temporal",
                  "Estimar chance de finalização e medir o quanto o distrito acrescenta"],
                 ["Redes neurais", "MLP (32,16) comparada aos demais modelos", "Verificar se um modelo não linear justifica a complexidade"],
+                ["Análise de sobrevivência preditiva", "Alerta antecipado: chance de um pedido em aberto passar de 30 dias, dada a idade dele, com simulação em seis datas passadas",
+                 "Transformar o diagnóstico em previsão acionável e validada"],
                 ["Sistemas de recomendação e PLN", "TF-IDF de palavras e caracteres com similaridade de cosseno e léxico curado",
                  "Ligar a linguagem do morador ao catálogo administrativo"],
                 ["IA generativa", "Redação da orientação a partir de uma ficha de fatos, com verificador de números",
@@ -275,6 +279,9 @@ def montar():
         p("<b>Índice padronizado</b>. A coluna esperado soma, para cada demanda do distrito, a taxa da "
           "cidade para aquele serviço."),
         codigo(indicadores.indice_por_distrito),
+        p("<b>Alerta antecipado</b>. Para cada pedido em aberto, busca a curva de sobrevivência do par "
+          "serviço e distrito, recua para a do serviço quando falta volume, e devolve S(30) dividido por S(k)."),
+        codigo(indicadores.prob_passar_da_janela),
         p("<b>Trava da IA generativa</b> (src/zeladoria/assistente.py). O modelo de linguagem recebe uma "
           "ficha de fatos em JSON e a instrução de usar somente esses fatos. A resposta é comparada com a "
           "ficha: se contiver qualquer número ausente dela, é descartada e o sistema usa a redação "
@@ -305,7 +312,23 @@ def montar():
                [3.4 * cm, 1.4 * cm, 1.5 * cm, 2.1 * cm, 3.6 * cm, 1.4 * cm, 1.5 * cm, 2.1 * cm]),
         Paragraph("Tabela 4. Distritos nos extremos do índice de equidade, janeiro a setembro de 2026.", LEG)]
     s += figura("fig4_estabilidade.png", 7.2, "Figura 1. Índice por distrito no 2º e no 3º trimestres.")
+    _d = db.demandas()
+    _e = _d[_d["elegivel_janela"] == 1]
+    _c = _e.groupby("servico").agg(v=("resolvida_janela", "size"), a=("resolvida_janela", lambda x: (1 - x).sum()))
+    _c = _c.sort_values("a", ascending=False)
+    _v3, _a3 = _c["v"].head(3).sum() / _c["v"].sum(), _c["a"].head(3).sum() / _c["a"].sum()
+    _med = {k: indicadores.percentil_km(q["dias"], q["finalizada"], 0.5) for k, q in _d.groupby("servico")}
+    _vol = _d["servico"].value_counts()
+    _rap = sum(_vol[k] for k, m in _med.items() if m is not None and m <= 3) / _vol.sum()
+    _len = sum(_vol[k] for k, m in _med.items() if m is None or m > 30) / _vol.sum()
+    _p80 = indicadores.percentil_km(_d["dias"], _d["finalizada"], 0.8)
     s += [Paragraph("3.2 Ela se concentra em poucos serviços", H2), p(
+        f"<b>Três serviços respondem por {pct(_a3)} do atraso.</b> Tapa-buraco, avaliação de poda de árvore e "
+        f"manutenção de guias e sarjetas somam {pct(_v3)} dos pedidos e {pct(_a3)} dos pedidos não finalizados "
+        f"em {J} dias. A zeladoria opera em duas velocidades: {pct(_rap)} do volume está em serviços com "
+        f"mediana de até 3 dias, e {pct(_len)} em serviços cuja mediana passa de {J} dias. Por isso a mediana "
+        f"geral, de {int(g['p50_dias'])} dias, esconde a cauda: um em cada cinco pedidos fica em aberto por "
+        f"mais de {int(_p80)} dias."), p(
         f"Serviços executados por contratos de escala são quase uniformes na cidade: remoção de entulho "
         f"tem {num(100 * ent['amplitude_p90_p10'], 0)} pontos percentuais entre o distrito no percentil 10 e "
         f"o no percentil 90. Em avaliação de poda de árvore a diferença é de "
@@ -366,7 +389,30 @@ def montar():
             "serviço. O viés de registro não desaparece, e está declarado nas limitações. A base também não "
             "traz gravidade: um fio solto e uma lixeira quebrada pesam igual. Um peso por risco precisa ser "
             "definido pela prefeitura.")]
-    s += figura("tela4_agir.png", 12.2, "Aba Onde agir: plano de ação, fila de atrasados e pontos de reincidência.")
+    AL = R["alerta"]
+    btab = db.ler("SELECT * FROM res_backtest ORDER BY data")
+    s += [p(f"<b>Alerta antecipado.</b> As três leituras anteriores descrevem o que já aconteceu. O alerta prevê: "
+            f"para cada pedido em aberto há menos de {J} dias, estima a chance de ele passar de {J} dias. O "
+            "modelo é uma curva de sobrevivência por serviço e distrito, usada de forma condicional: a chance "
+            f"de não finalizar até o dia {J}, dado que o pedido já espera há k dias, é S({J}) dividido por S(k). "
+            "A idade do pedido é informação que a taxa histórica simples ignora: um pedido que já passou do "
+            "prazo em que a maioria é resolvida tem chance muito maior de se arrastar."),
+          p(f"No retrato de 08/10/2026 havia {mil(AL['abertos_recentes'])} pedidos em aberto há menos de {J} "
+            f"dias, e o modelo estima que <b>{mil(round(AL['devem_passar']))}</b> deles passarão do prazo "
+            f"({pct(AL['devem_passar'] / AL['abertos_recentes'])}). <b>Validação:</b> o alerta foi simulado em "
+            f"{AL['simulacoes']} datas passadas. Em cada uma, o modelo foi ajustado apenas com o que era "
+            "conhecido naquele dia e a previsão foi comparada com o desfecho real. O total previsto ficou a no "
+            f"máximo <b>{num(100 * AL['erro_total_max'], 1)}% do total real</b>, com AUC entre "
+            f"{num(AL['auc_min'], 2)} e {num(AL['auc_max'], 2)}. A referência, que aplica a taxa histórica do "
+            f"serviço sem considerar a idade, subestimou o total em {num(abs(100 * AL['erro_total_referencia_medio']), 0)}% "
+            f"em média, com AUC médio de {num(AL['auc_referencia_medio'], 2)}."),
+          tabela([["Data", "Pedidos em aberto", "Previsto", "Real", "Erro do total", "AUC", "AUC referência"]] +
+                 [[pd.Timestamp(b.data).strftime("%d/%m/%Y"), mil(b.pedidos), mil(round(b.previsto)), mil(b.real),
+                   f"{num(100 * b.erro_total, 1)}%", num(b.auc, 3), num(b.auc_referencia, 3)] for b in btab.itertuples()],
+                 [2.3 * cm, 3 * cm, 2 * cm, 2 * cm, 2.4 * cm, 1.6 * cm, 2.6 * cm]),
+          Paragraph("Simulações do alerta antecipado em datas passadas.", LEG)]
+    s += figura("fig9_alerta.png", 12, "Total de pedidos que passaram de 30 dias: previsto pelo alerta, previsto pela referência e real.")
+    s += figura("tela4_agir.png", 12.2, "Aba Onde agir: plano de ação, alerta antecipado, fila de atrasados e pontos de reincidência.")
     s += [Paragraph("3.5 Grupos de distritos", H2), p(
         f"O K-Means sobre variáveis padronizadas de atendimento, canal, volume e mix de assuntos indicou "
         f"k = {int(kk.loc[kk['silhueta'].idxmax(), 'k'])} pela maior silhueta média "
@@ -411,13 +457,15 @@ def montar():
         "As telas abaixo são capturas da aplicação em execução sobre o banco real.")]
     s += figura("tela1_panorama.png", 15.5, "Figura 7. Aba Distritos: índice de equidade por distrito e relação com a distância ao centro.")
     s += figura("tela2_servico.png", 15.5, "Figura 8. Aba de comparação do mesmo serviço entre distritos.")
+    s += figura("tela5_metodo.png", 13.5, "Aba Método: comparação de modelos, calibração, simulações do alerta e técnicas usadas.")
     s += figura("tela3_pedido.png", 15.5,
                 "Figura 9. Fluxo do morador: descrição livre, serviços sugeridos, prazo no distrito e orientação.")
     log = (RAIZ / "docs" / "evidencias_pytest.txt").read_text(encoding="utf-8")
     s += [Paragraph("3.9 Evidências de teste", H2), p(
         f"A suíte automatizada tem {log.count(chr(32)+chr(80)+chr(65)+chr(83)+chr(83)+chr(69)+chr(68))} testes: leitura dos dois formatos de arquivo e recusa de formato "
         "ambíguo, regras de limpeza e censura, Kaplan-Meier conferido com cálculo manual, neutralidade do "
-        "índice ao mix de serviços, cálculo de atraso evitável, fila e pontos de reincidência, restrições do banco, injeção de SQL tratada como texto, conexão "
+        "índice ao mix de serviços, cálculo de atraso evitável, fila e pontos de reincidência, alerta antecipado "
+        "e reconstrução do retrato em data passada, restrições do banco, injeção de SQL tratada como texto, conexão "
         "somente leitura, mascaramento de dados pessoais, descarte de resposta de IA com número inventado, "
         "tolerância a falha da API e abertura do painel de ponta a ponta. Saída da execução:"),
         Preformatted(log, COD),
@@ -435,7 +483,9 @@ def montar():
         "conversar com moradores e gestores não foi realizada, e o recomendador foi avaliado com consultas "
         "simuladas. <b>Sem variável socioeconômica:</b> renda e população por distrito não foram "
         "integradas, então não há taxa por habitante. <b>Mapa por centróide:</b> sem malha de distritos. "
-        "<b>Sem implantação em nuvem:</b> a aplicação roda localmente."),
+        "<b>Sem implantação em nuvem:</b> a aplicação roda localmente. <b>Alerta não testado em "
+        "operação:</b> foi validado por simulação em datas passadas e prevê encerramento no sistema, não "
+        "execução do serviço."),
         Paragraph("3.11 Como medir o impacto", H2), tabela([
             ["Indicador", "Linha de base (jan-set 2026)", "Como acompanhar"],
             ["Diferença entre percentis 90 e 10 da taxa em 30 dias, poda de árvore", f"{num(100 * arv['amplitude_p90_p10'], 0)} p.p.", "Recalcular a cada trimestre publicado"],

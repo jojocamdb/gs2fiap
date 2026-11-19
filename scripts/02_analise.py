@@ -95,6 +95,25 @@ def main():
         "atrasadas": int(len(atrasadas)), "pontos_3": int(len(pontos)),
         "pontos_5": int((pontos["pedidos"] >= 5).sum())}
 
+    # --- alerta antecipado (sobrevivencia) -------------------------------------------
+    testes_alerta = [indicadores.backtest_alerta(d, dt) for dt in (
+        "2026-02-28", "2026-03-31", "2026-04-30", "2026-05-31", "2026-06-30", "2026-08-31")]
+    bt = pd.DataFrame([t for t in testes_alerta if t])
+    bt["erro_total"] = bt["previsto"] / bt["real"] - 1
+    bt["erro_total_referencia"] = bt["previsto_referencia"] / bt["real"] - 1
+    recentes = abertas[abertas["dias"] < config.JANELA_DIAS].copy()
+    recentes["prob"] = indicadores.prob_passar_da_janela(recentes, indicadores.ajustar_alerta(d))
+    alerta = recentes.groupby(["servico", "subprefeitura", "distrito"]).agg(
+        abertos=("prob", "size"), devem_passar=("prob", "sum"), risco_medio=("prob", "mean")).reset_index()
+    alerta = alerta.sort_values("devem_passar", ascending=False)
+    resumo["alerta"] = {
+        "data_retrato": str(ultimo), "abertos_recentes": int(len(recentes)),
+        "devem_passar": float(recentes["prob"].sum()),
+        "simulacoes": int(len(bt)), "erro_total_max": float(bt["erro_total"].abs().max()),
+        "erro_total_referencia_medio": float(bt["erro_total_referencia"].mean()),
+        "auc_min": float(bt["auc"].min()), "auc_max": float(bt["auc"].max()),
+        "auc_referencia_medio": float(bt["auc_referencia"].mean())}
+
     # --- modelos --------------------------------------------------------------------
     met, ajustados, cal = modelo.avaliar(d)
     e = modelo.preparar(d)
@@ -120,6 +139,7 @@ def main():
         for nome, t in {"res_distrito": tab, "res_servico_amplitude": amp, "res_servico_distrito": sd,
                         "res_modelos": met, "res_calibracao": cal, "res_kmeans_k": aval_k,
                         "res_recomendador": acertos, "res_prioridade": pares, "res_fila": fila,
+                        "res_backtest": bt, "res_alerta": alerta,
                         "res_pontos": pontos}.items():
             t.to_sql(nome, con, if_exists="replace", index=False)
     (config.DIR_PROC / "resumo.json").write_text(
@@ -136,6 +156,16 @@ def main():
     ax.set_ylabel("% acumulado do atraso evitável"); ax.set_ylim(0, 102); ax.set_xlim(0, len(pares))
     ax.set_title("Poucos pares concentram a maior parte do atraso evitável")
     fig.tight_layout(); fig.savefig(config.DIR_ASSETS / "fig8_pareto.png"); plt.close(fig)
+
+    fig, ax = plt.subplots(figsize=(7.2, 3.4))
+    pos = np.arange(len(bt)); larg = 0.36
+    ax.bar(pos - larg / 2, bt["previsto_referencia"], larg, color="#A3A3A3", label="Taxa histórica do serviço")
+    ax.bar(pos + larg / 2, bt["previsto"], larg, color="#B08D5E", label="Alerta (sobrevivência condicional)")
+    ax.scatter(pos, bt["real"], marker="_", s=900, color="#111111", linewidths=2.2, zorder=3, label="Real")
+    ax.set_xticks(pos); ax.set_xticklabels([pd.Timestamp(v).strftime("%d/%m") for v in bt["data"]])
+    ax.set_xlabel("Data da simulação"); ax.set_ylabel("Pedidos que passaram de 30 dias")
+    ax.set_title("Alerta antecipado: previsto e real em seis datas passadas"); ax.legend(frameon=False, fontsize=8)
+    fig.tight_layout(); fig.savefig(config.DIR_ASSETS / "fig9_alerta.png"); plt.close(fig)
     print(json.dumps(resumo, indent=2, default=float, ensure_ascii=False))
     print(met.round(4).to_string(index=False))
     print(amp.head(12).round(3).to_string(index=False))
