@@ -183,7 +183,7 @@ Prefeitura de São Paulo, Secretaria Municipal de Inovação e Tecnologia. Dados
 
 ### 🔗 Links do Projeto
 
-* **Vídeo de entrega no YouTube (não listado):** PREENCHER
+* **Vídeo de entrega no YouTube (não listado):** https://youtu.be/ML5adW8WR-0
 * **Repositório:** https://github.com/jojocamdb/gs2fiap
 * **PDF da entrega:** [docs/GS2_ZelaSP.pdf](docs/GS2_ZelaSP.pdf)
 * **Fonte dos dados:** [Dados do SP156 - Solicitações](https://dados.prefeitura.sp.gov.br/dataset/dados-do-sp156), Portal de Dados Abertos da Prefeitura de São Paulo
